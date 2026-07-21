@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suivi CAPA BU Inshore</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF1EE;
+    --panel:#FFFFFF;
+    --ink:#182420;
+    --ink-soft:#4B5750;
+    --navy:#1C3144;
+    --navy-soft:#2C445C;
+    --teal:#2F6F5E;
+    --teal-soft:#E4F0EC;
+    --amber:#C97A2B;
+    --amber-soft:#FBEDDD;
+    --red:#A63D40;
+    --red-soft:#F7E5E4;
+    --border:#D8DDD8;
+    --border-strong:#B9C2BA;
+    font-family:'IBM Plex Sans',sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 1px 1px, rgba(28,49,68,0.06) 1px, transparent 0) 0 0/22px 22px,
+      var(--bg);
+    color:var(--ink);
+    padding:28px 22px 60px;
+    min-height:100vh;
+  }
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  /* ===== HEADER ===== */
+  header{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    gap:20px;flex-wrap:wrap;
+    border-bottom:2px solid var(--navy);
+    padding-bottom:16px;margin-bottom:22px;
+  }
+  .brand-eyebrow{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;
+    color:var(--teal);text-transform:uppercase;font-weight:600;margin-bottom:6px;
+  }
+  h1{
+    font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:28px;margin:0;
+    color:var(--navy);letter-spacing:-0.01em;
+  }
+  .subtitle{color:var(--ink-soft);font-size:13.5px;margin-top:6px;max-width:520px;}
+  .doc-ref{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);
+    text-align:right;line-height:1.6;
+  }
+  .doc-ref b{color:var(--navy);}
+
+  /* ===== STAMP (signature element) ===== */
+  .stamp{
+    width:108px;height:108px;border-radius:50%;
+    border:2.5px dashed var(--teal);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    transform:rotate(-8deg);
+    flex-shrink:0;
+    font-family:'IBM Plex Mono',monospace;
+    color:var(--teal);
+    background:var(--teal-soft);
+  }
+  .stamp .pct{font-size:26px;font-weight:700;line-height:1;}
+  .stamp .lbl{font-size:8px;letter-spacing:.08em;text-transform:uppercase;margin-top:4px;text-align:center;}
+
+  /* ===== KPI ROW ===== */
+  .period-bar{
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    background:var(--panel);border:1px solid var(--border);border-radius:10px;
+    padding:12px 16px;margin-bottom:18px;
+  }
+  .field-inline{display:flex;align-items:center;gap:8px;}
+  .field-inline label{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);
+    text-transform:uppercase;letter-spacing:.05em;
+  }
+  .period-note{font-size:12px;color:var(--ink-soft);margin-left:auto;font-family:'IBM Plex Mono',monospace;}
+
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;}
+  @media(max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr);}}
+  .kpi-row-2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:26px;}
+  @media(max-width:900px){.kpi-row-2{grid-template-columns:1fr 1fr;}}
+  @media(max-width:560px){.kpi-row-2{grid-template-columns:1fr;}}
+  .kpi-card{
+    background:var(--panel);border:1px solid var(--border);border-radius:10px;
+    padding:16px 18px;position:relative;overflow:hidden;
+  }
+  .kpi-card .n{font-family:'IBM Plex Mono',monospace;font-size:30px;font-weight:700;color:var(--navy);}
+  .kpi-card .l{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .kpi-card .kpi-sub{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);margin-top:6px;}
+  .kpi-card.alert .n{color:var(--red);}
+  .kpi-card.ok .n{color:var(--teal);}
+  .kpi-card.info .n{color:var(--navy-soft);}
+  .kpi-card.clickable{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;}
+  .kpi-card.clickable:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(28,49,68,0.08);}
+  .kpi-card.clickable::after{
+    content:'Cliquer pour voir les actions →';
+    position:absolute;bottom:10px;right:16px;font-family:'IBM Plex Mono',monospace;
+    font-size:9.5px;color:var(--ink-soft);opacity:.7;
+  }
+  .kpi-card.clickable.active{border-color:var(--navy);box-shadow:0 0 0 2px rgba(28,49,68,0.12) inset;}
+
+  /* ===== SECTIONS ===== */
+  section{margin-bottom:34px;}
+  .sec-head{
+    display:flex;align-items:baseline;gap:10px;margin-bottom:14px;
+    border-bottom:1px solid var(--border-strong);padding-bottom:8px;
+  }
+  .sec-num{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--panel);
+    background:var(--navy);border-radius:4px;padding:2px 7px;font-weight:600;
+  }
+  .sec-title{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:700;color:var(--navy);}
+  .sec-sub{font-size:12px;color:var(--ink-soft);margin-left:auto;}
+
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:18px;}
+
+  /* Section 1 — donut */
+  .closure-panel{display:flex;gap:28px;align-items:center;flex-wrap:wrap;}
+  .donut-wrap{position:relative;width:150px;height:150px;flex-shrink:0;}
+  .donut-center{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .donut-center .big{font-size:26px;font-weight:700;color:var(--navy);}
+  .donut-center .small{font-size:10px;color:var(--ink-soft);}
+  .legend{display:flex;flex-direction:column;gap:10px;font-size:13px;}
+  .legend .row{display:flex;align-items:center;gap:8px;}
+  .dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+
+  /* Section 2 — activités */
+  .activity-grid{display:grid;gap:12px;}
+  .activity-card{
+    background:var(--panel);border:1px solid var(--border);border-radius:10px;
+    padding:14px 16px;display:grid;grid-template-columns:170px 1fr 130px 90px;gap:16px;align-items:center;
+  }
+  @media(max-width:800px){.activity-card{grid-template-columns:1fr;gap:8px;}}
+  .activity-name{font-weight:600;font-size:14px;color:var(--navy);}
+  .activity-meta{font-size:11px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
+  .bar-track{height:10px;background:var(--bg);border-radius:5px;overflow:hidden;border:1px solid var(--border);}
+  .bar-fill{height:100%;border-radius:5px;transition:width .4s ease;}
+  .eff-pct{font-family:'IBM Plex Mono',monospace;font-weight:700;text-align:right;font-size:15px;}
+
+  /* Section 3 — overdue */
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{
+    text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;
+    letter-spacing:.04em;color:var(--ink-soft);padding:8px 10px;border-bottom:1px solid var(--border-strong);
+  }
+  td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  .tag{
+    display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;
+    padding:2px 7px;border-radius:4px;letter-spacing:.02em;
+  }
+  .tag.red{background:var(--red-soft);color:var(--red);}
+  .tag.amber{background:var(--amber-soft);color:var(--amber);}
+  .tag.teal{background:var(--teal-soft);color:var(--teal);}
+  .empty-note{
+    color:var(--ink-soft);font-size:13px;padding:18px;text-align:center;
+    border:1px dashed var(--border-strong);border-radius:8px;
+  }
+
+  /* ===== FULL LIST + FORM ===== */
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
+  .filter-chip{
+    display:none;align-items:center;gap:6px;
+    background:var(--navy);color:#fff;font-family:'IBM Plex Mono',monospace;font-size:11.5px;
+    padding:5px 10px;border-radius:20px;cursor:pointer;font-weight:600;
+  }
+  .filter-chip:hover{opacity:.88;}
+  .filter-chip .x{font-weight:700;}
+  select,input[type=text],input[type=date],input[type=number],textarea{
+    font-family:'IBM Plex Sans',sans-serif;font-size:13px;
+    border:1px solid var(--border-strong);border-radius:6px;padding:7px 9px;background:var(--panel);color:var(--ink);
+  }
+  .btn{
+    font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;letter-spacing:.02em;
+    border:none;border-radius:6px;padding:9px 16px;cursor:pointer;transition:opacity .15s;
+  }
+  .btn:hover{opacity:.88;}
+  .btn-primary{background:var(--navy);color:#fff;}
+  .btn-ghost{background:transparent;color:var(--navy);border:1px solid var(--border-strong);}
+  .btn-danger{background:var(--red-soft);color:var(--red);}
+
+  .form-panel{display:none;margin-bottom:16px;}
+  .form-panel.open{display:block;}
+  .form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  @media(max-width:800px){.form-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:520px){.form-grid{grid-template-columns:1fr;}}
+  .field{display:flex;flex-direction:column;gap:4px;}
+  .field label{font-size:11px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
+  .field.span2{grid-column:span 2;}
+  .field.span3{grid-column:span 3;}
+  .autre-input{display:none;margin-top:4px;}
+  .autre-input.show{display:block;}
+  @media(max-width:800px){.field.span2,.field.span3{grid-column:span 2;}}
+  @media(max-width:520px){.field.span2,.field.span3{grid-column:span 1;}}
+  .form-actions{display:flex;gap:10px;margin-top:14px;justify-content:flex-end;}
+
+  .status-pill{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:20px;
+  }
+  .status-pill.cloture{background:var(--teal-soft);color:var(--teal);}
+  .status-pill.encours{background:var(--amber-soft);color:var(--amber);}
+  .status-pill.afaire{background:#E7EAF2;color:var(--navy-soft);}
+  .status-pill.autre{background:var(--bg);color:var(--ink-soft);}
+
+  .row-actions button{
+    background:none;border:none;cursor:pointer;color:var(--ink-soft);font-size:12px;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .row-actions button:hover{color:var(--red);}
+
+  #full-table tbody tr, #overdue-table tbody tr{
+    cursor:pointer;transition:background .12s ease;
+  }
+  #full-table tbody tr:hover, #overdue-table tbody tr:hover{
+    background:var(--teal-soft);
+  }
+  #full-table tbody tr td:first-child, #overdue-table tbody tr td:first-child{
+    position:relative;
+  }
+  .edit-hint{
+    font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--teal);
+    opacity:0;transition:opacity .12s ease;white-space:nowrap;
+  }
+  #full-table tbody tr:hover .edit-hint, #overdue-table tbody tr:hover .edit-hint{opacity:1;}
+
+  .foot-note{font-size:11px;color:var(--ink-soft);text-align:center;margin-top:30px;font-family:'IBM Plex Mono',monospace;}
+  .save-flash{
+    position:fixed;bottom:20px;right:20px;background:var(--navy);color:#fff;
+    font-family:'IBM Plex Mono',monospace;font-size:12px;padding:9px 16px;border-radius:8px;
+    opacity:0;transform:translateY(8px);transition:all .25s ease;pointer-events:none;
+  }
+  .save-flash.show{opacity:1;transform:translateY(0);}
+
+  /* ===== LOGIN ===== */
+  #login-screen{
+    position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;
+    z-index:1000;padding:20px;
+  }
+  .login-card{
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;
+    padding:32px 30px;width:100%;max-width:340px;box-shadow:0 10px 30px rgba(28,49,68,0.12);
+  }
+  .login-card h2{
+    font-family:'IBM Plex Mono',monospace;font-size:18px;color:var(--navy);margin:0 0 4px;
+  }
+  .login-card .login-sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:20px;}
+  .login-card .field{margin-bottom:12px;}
+  .login-card select,.login-card input{width:100%;}
+  .login-card .btn{width:100%;margin-top:6px;}
+  .login-error{color:var(--red);font-size:12px;margin-top:8px;display:none;}
+  .login-error.show{display:block;}
+  #app-shell{display:none;}
+
+  .user-bar{
+    display:flex;align-items:center;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-soft);
+  }
+  .role-badge{
+    font-weight:600;padding:2px 8px;border-radius:20px;font-size:10.5px;letter-spacing:.03em;
+  }
+  .role-badge.admin{background:var(--teal-soft);color:var(--teal);}
+  .role-badge.user{background:#E7EAF2;color:var(--navy-soft);}
+  #btn-logout{background:none;border:none;color:var(--ink-soft);cursor:pointer;text-decoration:underline;font-family:'IBM Plex Mono',monospace;font-size:11px;padding:0;}
+
+  #full-table tbody tr.readonly-row, #overdue-table tbody tr.readonly-row{cursor:default;}
+  #full-table tbody tr.readonly-row:hover, #overdue-table tbody tr.readonly-row:hover{background:transparent;}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <h2>Suivi CAPA BU Inshore</h2>
+    <div class="login-sub">Connectez-vous pour accéder à l'outil.</div>
+    <div class="field">
+      <label>Identifiant</label>
+      <input type="text" id="login-username" placeholder="admin ou user" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Mot de passe</label>
+      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary" id="btn-login">Se connecter</button>
+    <div class="login-error" id="login-error">Identifiant ou mot de passe incorrect.</div>
+  </div>
+</div>
+
+<div id="settings-screen" style="display:none;position:fixed;inset:0;background:rgba(24,36,32,0.45);z-index:1001;align-items:center;justify-content:center;padding:20px;">
+  <div class="login-card">
+    <h2>Comptes &amp; mots de passe</h2>
+    <div class="login-sub">Laissez un champ vide pour ne pas modifier le mot de passe correspondant.</div>
+    <div class="field">
+      <label>Nouveau mot de passe — Admin</label>
+      <input type="password" id="settings-admin-pw" placeholder="Inchangé" autocomplete="new-password">
+    </div>
+    <div class="field">
+      <label>Nouveau mot de passe — Utilisateur</label>
+      <input type="password" id="settings-user-pw" placeholder="Inchangé" autocomplete="new-password">
+    </div>
+    <button class="btn btn-primary" id="btn-settings-save">Enregistrer</button>
+    <button class="btn btn-ghost" id="btn-settings-cancel" style="margin-top:8px;">Annuler</button>
+    <div class="login-error" id="settings-error"></div>
+  </div>
+</div>
+
+<div class="wrap" id="app-shell">
+
+  <header>
+    <div>
+      <div class="brand-eyebrow">Système de management de la qualité</div>
+      <h1>Suivi CAPA BU Inshore</h1>
+      <div class="subtitle">Actions correctives et préventives — traçabilité, efficacité et respect des échéances (réf. ISO 9001 §10.2).</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:18px;">
+      <div class="user-bar">
+        <span id="user-label">—</span>
+        <span class="role-badge" id="role-badge"></span>
+        <button id="btn-account-settings" style="display:none;background:none;border:none;color:var(--ink-soft);cursor:pointer;text-decoration:underline;font-family:'IBM Plex Mono',monospace;font-size:11px;padding:0;">⚙ Comptes</button>
+        <button id="btn-logout">Déconnexion</button>
+      </div>
+      <div class="doc-ref">Source : <b>Suivi CAPA BU Inshore</b><br>Mise à jour : <span id="last-update">—</span></div>
+      <div class="stamp"><div class="pct" id="stamp-pct">—</div><div class="lbl">clôturées</div></div>
+    </div>
+  </header>
+
+  <div class="period-bar">
+    <div class="field-inline">
+      <label>BU</label>
+      <select id="filter-bu">
+        <option value="">Toutes les BU</option>
+        <option value="Yas">Yas</option>
+        <option value="Mvola">Mvola</option>
+        <option value="Openfield">Openfield</option>
+      </select>
+    </div>
+    <div class="field-inline">
+      <label>Activité</label>
+      <select id="filter-activity"><option value="">Toutes les activités</option></select>
+    </div>
+    <div class="field-inline">
+      <label>Mois</label>
+      <select id="filter-month"><option value="">Tous les mois</option></select>
+    </div>
+    <div class="field-inline">
+      <label>Semaine</label>
+      <select id="filter-week"><option value="">Toutes les semaines</option></select>
+    </div>
+    <button class="btn btn-ghost" id="btn-reset-period">Réinitialiser</button>
+    <span class="period-note">S'applique au dashboard et au registre</span>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="n" id="kpi-total">—</div><div class="l">Actions totales</div></div>
+    <div class="kpi-card ok"><div class="n" id="kpi-closed">—</div><div class="l">Clôturées</div></div>
+    <div class="kpi-card"><div class="n" id="kpi-open">—</div><div class="l">En cours</div></div>
+    <div class="kpi-card alert"><div class="n" id="kpi-overdue">—</div><div class="l">En retard (non clôturées)</div></div>
+  </div>
+
+  <div class="kpi-row-2">
+    <div class="kpi-card ok clickable" id="kpi-eff-card">
+      <div class="n" id="kpi-eff-pct">—</div>
+      <div class="l">Taux d'efficacité global</div>
+      <div class="kpi-sub" id="kpi-eff-sub"></div>
+    </div>
+    <div class="kpi-card alert clickable" id="kpi-ineff-card">
+      <div class="n" id="kpi-ineff-pct">—</div>
+      <div class="l">Taux d'inefficacité global</div>
+      <div class="kpi-sub" id="kpi-ineff-sub"></div>
+    </div>
+    <div class="kpi-card info clickable" id="kpi-training-card">
+      <div class="n" id="kpi-training-pct">—</div>
+      <div class="l">Avancement — Formations &amp; ateliers</div>
+      <div class="kpi-sub" id="kpi-training-sub"></div>
+    </div>
+  </div>
+
+  <!-- SECTION 1 -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <span class="sec-title">Clôture globale</span>
+      <span class="sec-sub">Actions clôturées vs total</span>
+    </div>
+    <div class="panel closure-panel">
+      <div class="donut-wrap">
+        <svg viewBox="0 0 120 120" width="150" height="150">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="#E4E8E3" stroke-width="14"/>
+          <circle id="donut-arc" cx="60" cy="60" r="50" fill="none" stroke="#2F6F5E" stroke-width="14"
+                  stroke-dasharray="0 314" stroke-linecap="round" transform="rotate(-90 60 60)"/>
+        </svg>
+        <div class="donut-center"><div class="big" id="donut-pct">0%</div><div class="small">clôturé</div></div>
+      </div>
+      <div class="legend">
+        <div class="row"><span class="dot" style="background:#2F6F5E"></span><span id="legend-closed">0 clôturées</span></div>
+        <div class="row"><span class="dot" style="background:#E4E8E3"></span><span id="legend-open">0 en cours</span></div>
+        <div class="row" style="margin-top:6px;color:var(--ink-soft);font-size:12px;max-width:280px;">
+          Le taux de clôture mesure l'avancement du traitement, indépendamment de l'efficacité de l'action (voir section 2).
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2 -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <span class="sec-title">Actions par activité</span>
+      <span class="sec-sub">Taux d'efficacité = actions jugées efficaces / actions évaluées</span>
+    </div>
+    <div class="activity-grid" id="activity-list"></div>
+  </section>
+
+  <!-- SECTION 3 -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <span class="sec-title">Actions en retard</span>
+      <span class="sec-sub">Non clôturées, date d'échéance dépassée</span>
+    </div>
+    <div class="panel" id="overdue-panel" style="padding:0;overflow:auto;">
+      <table id="overdue-table">
+        <thead><tr>
+          <th>ID</th><th>BU</th><th>Activité</th><th>Action</th><th>Responsable</th><th>Échéance</th><th>Retard</th><th>Statut</th><th>Priorité</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="empty-note" id="overdue-empty" style="display:none;margin:14px;">Aucune action en retard 🎉</div>
+    </div>
+  </section>
+
+  <!-- FULL LIST -->
+  <section id="section-registry">
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <span class="sec-title">Registre complet</span>
+      <span class="sec-sub">Toutes les actions CAPA</span>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn btn-primary" id="btn-new">+ Nouvelle action</button>
+      <select id="filter-status">
+        <option value="">Tous les statuts</option>
+        <option value="A faire">A faire</option>
+        <option value="En cours">En cours</option>
+        <option value="Clôturé">Clôturé</option>
+      </select>
+      <input type="text" id="filter-search" placeholder="Rechercher…" style="min-width:180px;">
+      <span class="filter-chip" id="eff-filter-chip"><span class="lbl">Filtre</span><span class="x">×</span></span>
+      <span style="margin-left:auto;font-size:11px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;" id="reg-count"></span>
+    </div>
+
+    <div class="form-panel panel" id="form-panel">
+      <div class="form-grid">
+        <div class="field">
+          <label>BU *</label>
+          <select id="f-bu">
+            <option value="">— Sélectionner —</option>
+            <option value="Yas">Yas</option>
+            <option value="Mvola">Mvola</option>
+            <option value="Openfield">Openfield</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Activité *</label>
+          <select id="f-activite"></select>
+          <input type="text" id="f-activite-autre" class="autre-input" placeholder="Préciser l'activité">
+        </div>
+        <div class="field"><label>Type</label><input type="text" id="f-type" placeholder="Ex: Erreur agent"></div>
+        <div class="field"><label>Source</label><input type="text" id="f-source" placeholder="Ex: Traitement"></div>
+        <div class="field span2"><label>Non-conformité</label><input type="text" id="f-nc"></div>
+        <div class="field"><label>Priorité</label>
+          <select id="f-priorite"><option>Faible</option><option selected>Moyenne</option><option>Haute</option></select>
+        </div>
+        <div class="field span3"><label>Cause racine</label><input type="text" id="f-cause"></div>
+        <div class="field span3"><label>Action *</label><input type="text" id="f-action"></div>
+        <div class="field">
+          <label>Responsable</label>
+          <select id="f-resp"></select>
+          <input type="text" id="f-resp-autre" class="autre-input" placeholder="Préciser le responsable">
+        </div>
+        <div class="field"><label>Date ouverture</label><input type="date" id="f-date-ouv"></div>
+        <div class="field"><label>Date échéance *</label><input type="date" id="f-date-ech"></div>
+        <div class="field"><label>Statut</label>
+          <select id="f-statut"><option>A faire</option><option selected>En cours</option><option>Clôturé</option></select>
+        </div>
+        <div class="field">
+          <label>KPI</label>
+          <select id="f-kpi"></select>
+          <input type="text" id="f-kpi-autre" class="autre-input" placeholder="Préciser le KPI">
+        </div>
+        <div class="field"><label>KPI départ</label><input type="number" step="any" id="f-kpi-depart" placeholder="Valeur initiale"></div>
+        <div class="field"><label>KPI cible</label><input type="number" step="any" id="f-kpi-cible" placeholder="Objectif visé"></div>
+        <div class="field"><label>KPI post-action</label><input type="number" step="any" id="f-kpi-post" placeholder="Valeur mesurée"></div>
+        <div class="field"><label>% Avancement</label><input type="number" id="f-avancement" min="0" max="100" value="0"></div>
+        <div class="field"><label>Efficacité</label>
+          <select id="f-efficacite"><option value="">Non évaluée</option><option value="Oui">Oui</option><option value="Non">Non</option></select>
+        </div>
+        <div class="field span3"><label>Commentaire</label><input type="text" id="f-comment"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" id="btn-cancel">Annuler</button>
+        <button class="btn btn-primary" id="btn-save">Enregistrer l'action</button>
+      </div>
+    </div>
+
+    <div class="panel" style="padding:0;overflow:auto;">
+      <table id="full-table">
+        <thead><tr>
+          <th>ID</th><th>BU</th><th>Activité</th><th>Action</th><th>Responsable</th><th>Échéance</th><th>Statut</th><th>Efficacité</th><th>Avanc.</th><th></th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="foot-note">Suivi CAPA BU Inshore · Les données sont partagées et stockées automatiquement</div>
+</div>
+
+<div class="save-flash" id="save-flash">Action enregistrée</div>
+
+<script>
+const STORAGE_KEY = 'capa:actions';
+let actions = [];
+let editingId = null;
+let registryEfficaciteFilter = null; // null | 'Oui' | 'Non' — set by clicking the efficiency KPI cards
+let registryTrainingFilter = false;  // true when the "Formations & ateliers" KPI card is active
+
+/* ===================== AUTHENTIFICATION ===================== */
+/* Comptes par défaut (utilisés au tout premier lancement, puis les mots
+   de passe sont stockés et modifiables par l'Admin). Ceci reste un
+   contrôle d'accès côté client (pas une sécurité réelle : le code de la
+   page reste consultable). */
+const CREDENTIALS_KEY = 'capa:credentials';
+const DEFAULT_CREDENTIALS = {
+  admin: {password:'admin123', role:'admin', label:'Administrateur'},
+  user:  {password:'user123',  role:'user',  label:'Utilisateur'},
+};
+let CREDENTIALS = null;
+let currentUser = null; // {username, role, label}
+
+async function ensureCredentials(){
+  if(CREDENTIALS) return CREDENTIALS;
+  try{
+    const res = await window.storage.get(CREDENTIALS_KEY, true);
+    CREDENTIALS = res && res.value ? JSON.parse(res.value) : null;
+  }catch(e){ CREDENTIALS = null; }
+  if(!CREDENTIALS){
+    CREDENTIALS = JSON.parse(JSON.stringify(DEFAULT_CREDENTIALS));
+    await persistCredentials();
+  }
+  return CREDENTIALS;
+}
+
+async function persistCredentials(){
+  try{
+    await window.storage.set(CREDENTIALS_KEY, JSON.stringify(CREDENTIALS), true);
+  }catch(e){ console.error('Erreur de sauvegarde des identifiants', e); }
+}
+ensureCredentials(); // précharge dès l'ouverture de la page
+
+async function attemptLogin(){
+  await ensureCredentials();
+  const u = document.getElementById('login-username').value.trim();
+  const p = document.getElementById('login-password').value;
+  const account = CREDENTIALS[u];
+  const errEl = document.getElementById('login-error');
+  if(!account || account.password !== p){
+    errEl.classList.add('show');
+    return;
+  }
+  errEl.classList.remove('show');
+  currentUser = {username:u, role:account.role, label:account.label};
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-shell').style.display = 'block';
+  document.getElementById('user-label').textContent = `${account.label} (${u})`;
+  const badge = document.getElementById('role-badge');
+  badge.textContent = account.role === 'admin' ? 'Admin' : 'Lecture/Ajout';
+  badge.className = 'role-badge ' + account.role;
+  document.getElementById('btn-account-settings').style.display = account.role === 'admin' ? 'inline' : 'none';
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+  loadData();
+}
+
+function logout(){
+  currentUser = null;
+  document.getElementById('app-shell').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  closeForm();
+}
+
+document.getElementById('btn-login').addEventListener('click', attemptLogin);
+document.getElementById('login-password').addEventListener('keydown', (e)=>{ if(e.key==='Enter') attemptLogin(); });
+document.getElementById('login-username').addEventListener('keydown', (e)=>{ if(e.key==='Enter') attemptLogin(); });
+document.getElementById('btn-logout').addEventListener('click', logout);
+
+function isAdmin(){ return currentUser && currentUser.role === 'admin'; }
+
+/* ---- Gestion des mots de passe (Admin uniquement) ---- */
+document.getElementById('btn-account-settings').addEventListener('click', ()=>{
+  document.getElementById('settings-admin-pw').value = '';
+  document.getElementById('settings-user-pw').value = '';
+  const errEl = document.getElementById('settings-error');
+  errEl.classList.remove('show');
+  document.getElementById('settings-screen').style.display = 'flex';
+});
+document.getElementById('btn-settings-cancel').addEventListener('click', ()=>{
+  document.getElementById('settings-screen').style.display = 'none';
+});
+document.getElementById('btn-settings-save').addEventListener('click', async ()=>{
+  const newAdminPw = document.getElementById('settings-admin-pw').value;
+  const newUserPw = document.getElementById('settings-user-pw').value;
+  const errEl = document.getElementById('settings-error');
+  if(!newAdminPw && !newUserPw){
+    errEl.textContent = 'Renseignez au moins un mot de passe à modifier.';
+    errEl.classList.add('show');
+    return;
+  }
+  if((newAdminPw && newAdminPw.length < 4) || (newUserPw && newUserPw.length < 4)){
+    errEl.textContent = 'Chaque mot de passe doit contenir au moins 4 caractères.';
+    errEl.classList.add('show');
+    return;
+  }
+  await ensureCredentials();
+  if(newAdminPw) CREDENTIALS.admin.password = newAdminPw;
+  if(newUserPw) CREDENTIALS.user.password = newUserPw;
+  await persistCredentials();
+  errEl.classList.remove('show');
+  document.getElementById('settings-screen').style.display = 'none';
+  flash('Mots de passe mis à jour');
+});
+
+function isTrainingAction(a){
+  return !!(a.action && /formation|atelier/i.test(a.action));
+}
+
+/* BU disponibles et activités rattachées à chaque BU */
+const BU_LIST = ['Yas','Mvola','Openfield'];
+const ACTIVITES_BY_BU = {
+  Yas: ['ACTIVATION FIXE / INTERNET','COURRIER ET ARCHIVE','ACTIVATION MOBILE','FACTURATION','Appels Entrants','Digital','B2B FARMING','SUPPORT GC','RECLAMATION','RETENTION','STMM','Telesales','AS Recouvrement','AS PLV','Autre à préciser'],
+  Mvola: ['Digital','Appels Sortants Recouvrement','Appels Sortants PLV','Appels Entrants','Certification','Activation / Accréditation','Réclamation','Requête','Assistance privilège','Autre à préciser'],
+  Openfield: ['WELIGHT','TELCO OI','YAS COMORES','YAS SN','STELLAR IX','INCOMM','PAM','PRODIGY','ARO','Autre à préciser'],
+};
+
+/* Listes issues de la feuille BU du fichier Excel source */
+const LISTS = {
+  get activite(){ return [...new Set(Object.values(ACTIVITES_BY_BU).flat())]; },
+  responsable: ['Formateur métier','Formateur GRC','Contrôleur qualité','Manager Coach','Opération manager','CCM'],
+  kpi: ['Taux de productivité','ACW','DMC','CSAT','FCR','Taux anomalie Base','Process remboursement','S3',"Outil d'extration prod"],
+};
+const AUTRE_VALUE = '__autre__';
+
+function populateSelect(selectId, list, includeAutre=true){
+  const sel = document.getElementById(selectId);
+  sel.innerHTML = '<option value="">— Sélectionner —</option>' +
+    list.map(v=>`<option value="${v}">${v}</option>`).join('') +
+    (includeAutre ? `<option value="${AUTRE_VALUE}">Autre (préciser)…</option>` : '');
+}
+
+function wireAutreToggle(selectId, autreInputId){
+  const sel = document.getElementById(selectId);
+  const autre = document.getElementById(autreInputId);
+  sel.addEventListener('change', ()=>{
+    if(sel.value===AUTRE_VALUE){
+      autre.classList.add('show');
+      autre.focus();
+    } else {
+      autre.classList.remove('show');
+      autre.value = '';
+    }
+  });
+}
+
+function getSelectValue(selectId, autreInputId){
+  const sel = document.getElementById(selectId);
+  if(sel.value===AUTRE_VALUE){
+    return document.getElementById(autreInputId).value.trim();
+  }
+  return sel.value;
+}
+
+function setSelectValue(selectId, autreInputId, value){
+  const sel = document.getElementById(selectId);
+  const autre = document.getElementById(autreInputId);
+  const options = [...sel.options].map(o=>o.value);
+  if(value && options.includes(value)){
+    sel.value = value;
+    autre.classList.remove('show');
+    autre.value = '';
+  } else if(value){
+    sel.value = AUTRE_VALUE;
+    autre.classList.add('show');
+    autre.value = value;
+  } else {
+    sel.value = '';
+    autre.classList.remove('show');
+    autre.value = '';
+  }
+}
+
+const seedData = [
+  {id:1, bu:'Yas', activite:'Digital', type:'Erreur agent', source:'Traitement', nc:'Ajustement à tort', cause:"Procédure ajustement non maîtrisé", action:'Formation process ajustement', responsable:'Formateur métier', dateOuverture:'2026-07-21', dateEcheance:'2026-07-21', priorite:'Moyenne', statut:'Clôturé', kpi:'CSAT', kpiDepart:0.33, kpiCible:0.75, kpiPostAction:0.8, avancement:100, efficacite:'Oui', comment:'RAS'},
+  {id:2, bu:'Yas', activite:'B2B FARMING', type:'Erreur agent', source:'Traitement', nc:'Anomalie Nom client', cause:"Faute d'inatention", action:'Recadrage/sensibilisation', responsable:'Manager Coach', dateOuverture:'2026-07-21', dateEcheance:'2026-07-21', priorite:'Moyenne', statut:'Clôturé', kpi:'Taux anomalie Base', kpiDepart:1, kpiCible:0, kpiPostAction:0.1, avancement:100, efficacite:'Non', comment:'RAS'},
+  {id:3, bu:'Yas', activite:'RECLAMATION', type:'Process', source:'Process remboursement Obsolète', nc:'Remboursement', cause:'Nouveaux process non partagé', action:'Déploiement atelier', responsable:'Contrôleur qualité', dateOuverture:'2026-07-21', dateEcheance:'2026-07-21', priorite:'Haute', statut:'En cours', kpi:'Process remboursement', kpiDepart:0, kpiCible:1, kpiPostAction:null, avancement:50, efficacite:'Oui', comment:'RAS'},
+  {id:4, bu:'Yas', activite:'RECLAMATION', type:'Outils', source:'Bug page S3', nc:'Historisation ko', cause:'Cache plein', action:'Nettoyage cache', responsable:'Manager Coach', dateOuverture:'2026-07-21', dateEcheance:'2026-07-22', priorite:'Haute', statut:'Clôturé', kpi:'S3', kpiDepart:0, kpiCible:1, kpiPostAction:1, avancement:100, efficacite:'Oui', comment:'RAS'},
+  {id:5, bu:'Yas', activite:'Telesales', type:'Outils', source:'Visibilité manager', nc:'Erreur comptage production agent', cause:"Outil d'extraction non exploité", action:"Exploitation de l'outil d'extraction", responsable:'Opération manager', dateOuverture:'2026-07-21', dateEcheance:'2026-07-31', priorite:'Faible', statut:'En cours', kpi:"Outil d'extration prod", kpiDepart:0, kpiCible:1, kpiPostAction:null, avancement:50, efficacite:'Oui', comment:'RAS'},
+];
+
+async function loadData(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, true);
+    actions = res && res.value ? JSON.parse(res.value) : null;
+  }catch(e){ actions = null; }
+  if(!actions){
+    actions = seedData;
+    await persist();
+  }
+  render();
+}
+
+async function persist(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(actions), true);
+    flash();
+  }catch(e){ console.error('Erreur de sauvegarde', e); }
+}
+
+function flash(msg){
+  const el = document.getElementById('save-flash');
+  el.textContent = msg || 'Enregistré';
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 1600);
+}
+
+function todayStr(){
+  return new Date().toISOString().slice(0,10);
+}
+
+function fmtDate(d){
+  if(!d) return '—';
+  const dt = new Date(d+'T00:00:00');
+  return dt.toLocaleDateString('fr-FR', {day:'2-digit', month:'short', year:'numeric'});
+}
+
+function daysLate(d){
+  const dt = new Date(d+'T00:00:00');
+  const now = new Date(todayStr()+'T00:00:00');
+  return Math.round((now-dt)/86400000);
+}
+
+/* ===================== PERIODE (mois / semaine) ===================== */
+const MONTH_NAMES = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+function monthKey(dateStr){
+  return dateStr ? dateStr.slice(0,7) : null; // "YYYY-MM"
+}
+function monthLabel(key){
+  const [y,m] = key.split('-');
+  return `${MONTH_NAMES[Number(m)-1]} ${y}`;
+}
+function getISOWeek(dateStr){
+  const date = new Date(dateStr+'T00:00:00');
+  date.setDate(date.getDate() + 4 - (date.getDay()||7));
+  const yearStart = new Date(date.getFullYear(),0,1);
+  const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1)/7);
+  return {year: date.getFullYear(), week: weekNo};
+}
+function weekKey(dateStr){
+  if(!dateStr) return null;
+  const {year, week} = getISOWeek(dateStr);
+  return `${year}-W${String(week).padStart(2,'0')}`;
+}
+function weekLabel(key){
+  const [y,w] = key.split('-W');
+  return `Semaine ${Number(w)} · ${y}`;
+}
+
+function populatePeriodFilters(){
+  const buSel = document.getElementById('filter-bu');
+  const actSel = document.getElementById('filter-activity');
+  const monthSel = document.getElementById('filter-month');
+  const weekSel = document.getElementById('filter-week');
+  const curBU = buSel.value;
+  const curAct = actSel.value;
+  const curMonth = monthSel.value;
+  const curWeek = weekSel.value;
+
+  const buScoped = curBU ? actions.filter(a=>a.bu===curBU) : actions;
+
+  const activities = new Set(curBU ? (ACTIVITES_BY_BU[curBU]||[]) : LISTS.activite);
+  const months = new Set();
+  const weeks = new Set();
+  buScoped.forEach(a=>{
+    if(a.activite) activities.add(a.activite);
+    if(a.dateEcheance){
+      months.add(monthKey(a.dateEcheance));
+      weeks.add(weekKey(a.dateEcheance));
+    }
+  });
+
+  actSel.innerHTML = '<option value="">Toutes les activités</option>' +
+    [...activities].sort().map(n=>`<option value="${n}">${n}</option>`).join('');
+  monthSel.innerHTML = '<option value="">Tous les mois</option>' +
+    [...months].sort().map(k=>`<option value="${k}">${monthLabel(k)}</option>`).join('');
+  weekSel.innerHTML = '<option value="">Toutes les semaines</option>' +
+    [...weeks].sort().map(k=>`<option value="${k}">${weekLabel(k)}</option>`).join('');
+
+  buSel.value = curBU;
+  actSel.value = [...activities].includes(curAct) ? curAct : '';
+  monthSel.value = curMonth;
+  weekSel.value = curWeek;
+}
+
+function getFilteredActions(){
+  const bu = document.getElementById('filter-bu').value;
+  const act = document.getElementById('filter-activity').value;
+  const m = document.getElementById('filter-month').value;
+  const w = document.getElementById('filter-week').value;
+  if(!bu && !act && !m && !w) return actions;
+  return actions.filter(a=>{
+    if(bu && a.bu!==bu) return false;
+    if(act && a.activite!==act) return false;
+    if((m || w) && !a.dateEcheance) return false;
+    if(m && monthKey(a.dateEcheance)!==m) return false;
+    if(w && weekKey(a.dateEcheance)!==w) return false;
+    return true;
+  });
+}
+
+function statusPillHTML(statut){
+  const cls = statut==='Clôturé' ? 'cloture' : (statut==='En cours' ? 'encours' : (statut==='A faire' ? 'afaire' : 'autre'));
+  return `<span class="status-pill ${cls}">${statut}</span>`;
+}
+
+/* ===================== RENDER ===================== */
+function render(){
+  document.getElementById('last-update').textContent = new Date().toLocaleString('fr-FR');
+  populatePeriodFilters();
+
+  const scoped = getFilteredActions();
+  const total = scoped.length;
+  const closed = scoped.filter(a=>a.statut==='Clôturé').length;
+  const open = total-closed;
+  const overdue = scoped.filter(a=>a.statut!=='Clôturé' && a.dateEcheance && daysLate(a.dateEcheance)>0);
+
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('kpi-closed').textContent = closed;
+  document.getElementById('kpi-open').textContent = open;
+  document.getElementById('kpi-overdue').textContent = overdue.length;
+
+  const pct = total? Math.round(closed/total*100) : 0;
+  document.getElementById('stamp-pct').textContent = pct+'%';
+  document.getElementById('donut-pct').textContent = pct+'%';
+  document.getElementById('donut-arc').setAttribute('stroke-dasharray', `${(pct/100*314).toFixed(1)} 314`);
+  document.getElementById('legend-closed').textContent = `${closed} clôturée${closed>1?'s':''}`;
+  document.getElementById('legend-open').textContent = `${open} en cours`;
+
+  /* ---- Taux d'efficacité / inefficacité globaux ---- */
+  const evaluated = scoped.filter(a=>a.efficacite==='Oui'||a.efficacite==='Non');
+  const effN = scoped.filter(a=>a.efficacite==='Oui').length;
+  const ineffN = scoped.filter(a=>a.efficacite==='Non').length;
+  const effPct = evaluated.length ? Math.round(effN/evaluated.length*100) : null;
+  const ineffPct = evaluated.length ? Math.round(ineffN/evaluated.length*100) : null;
+
+  document.getElementById('kpi-eff-pct').textContent = effPct===null ? '—' : effPct+'%';
+  document.getElementById('kpi-eff-sub').textContent = evaluated.length
+    ? `${effN}/${evaluated.length} actions efficaces` : 'Aucune action évaluée';
+  document.getElementById('kpi-ineff-pct').textContent = ineffPct===null ? '—' : ineffPct+'%';
+  document.getElementById('kpi-ineff-sub').textContent = evaluated.length
+    ? `${ineffN}/${evaluated.length} actions inefficaces` : 'Aucune action évaluée';
+
+  document.getElementById('kpi-eff-card').classList.toggle('active', registryEfficaciteFilter==='Oui');
+  document.getElementById('kpi-ineff-card').classList.toggle('active', registryEfficaciteFilter==='Non');
+
+  /* ---- Taux d'avancement global — Formations & ateliers ---- */
+  const trainingActions = scoped.filter(isTrainingAction);
+  const trainingAvg = trainingActions.length
+    ? Math.round(trainingActions.reduce((s,a)=>s+(Number(a.avancement)||0),0)/trainingActions.length)
+    : null;
+  document.getElementById('kpi-training-pct').textContent = trainingAvg===null ? '—' : trainingAvg+'%';
+  document.getElementById('kpi-training-sub').textContent = trainingActions.length
+    ? `${trainingActions.length} action${trainingActions.length>1?'s':''} formation/atelier`
+    : 'Aucune action de ce type';
+  document.getElementById('kpi-training-card').classList.toggle('active', registryTrainingFilter);
+
+  const chip = document.getElementById('eff-filter-chip');
+  if(registryEfficaciteFilter){
+    chip.style.display = 'inline-flex';
+    chip.querySelector('.lbl').textContent = `Efficacité = ${registryEfficaciteFilter}`;
+  } else if(registryTrainingFilter){
+    chip.style.display = 'inline-flex';
+    chip.querySelector('.lbl').textContent = `Formations & ateliers`;
+  } else {
+    chip.style.display = 'none';
+  }
+
+  /* ---- Section 2: activities ---- */
+  const byActivity = {};
+  scoped.forEach(a=>{
+    const key = a.activite || 'Non renseigné';
+    if(!byActivity[key]) byActivity[key] = [];
+    byActivity[key].push(a);
+  });
+  const actList = document.getElementById('activity-list');
+  actList.innerHTML = '';
+  Object.keys(byActivity).sort().forEach(name=>{
+    const items = byActivity[name];
+    const evaluated = items.filter(a=>a.efficacite==='Oui'||a.efficacite==='Non');
+    const eff = items.filter(a=>a.efficacite==='Oui');
+    const effPct = evaluated.length ? Math.round(eff.length/evaluated.length*100) : null;
+    const closedN = items.filter(a=>a.statut==='Clôturé').length;
+    const barColor = effPct===null ? '#B9C2BA' : (effPct>=70?'#2F6F5E':effPct>=40?'#C97A2B':'#A63D40');
+    const card = document.createElement('div');
+    card.className = 'activity-card';
+    card.innerHTML = `
+      <div>
+        <div class="activity-name">${name}</div>
+        <div class="activity-meta">${items.length} action${items.length>1?'s':''} · ${closedN} clôturée${closedN>1?'s':''}</div>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${effPct===null?0:effPct}%;background:${barColor}"></div></div>
+      <div style="font-size:11px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;">
+        ${evaluated.length ? `${eff.length}/${evaluated.length} efficaces` : 'non évalué'}
+      </div>
+      <div class="eff-pct" style="color:${barColor}">${effPct===null?'—':effPct+'%'}</div>
+    `;
+    actList.appendChild(card);
+  });
+  if(Object.keys(byActivity).length===0){
+    actList.innerHTML = '<div class="empty-note">Aucune action enregistrée</div>';
+  }
+
+  /* ---- Section 3: overdue ---- */
+  const tbody = document.querySelector('#overdue-table tbody');
+  tbody.innerHTML = '';
+  overdue.sort((a,b)=>daysLate(b.dateEcheance)-daysLate(a.dateEcheance));
+  overdue.forEach(a=>{
+    const late = daysLate(a.dateEcheance);
+    const tr = document.createElement('tr');
+    tr.dataset.id = a.id;
+    if(!isAdmin()) tr.classList.add('readonly-row');
+    tr.innerHTML = `
+      <td>#${a.id} ${isAdmin() ? '<span class="edit-hint">✎ éditer</span>' : ''}</td>
+      <td>${a.bu||'—'}</td>
+      <td>${a.activite||'—'}</td>
+      <td>${a.action||'—'}</td>
+      <td>${a.responsable||'—'}</td>
+      <td>${fmtDate(a.dateEcheance)}</td>
+      <td><span class="tag ${late>14?'red':'amber'}">+${late} j</span></td>
+      <td>${statusPillHTML(a.statut)}</td>
+      <td>${a.priorite||'—'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('overdue-table').style.display = overdue.length? '' : 'none';
+  document.getElementById('overdue-empty').style.display = overdue.length? 'none' : 'block';
+
+  /* ---- Section 4: full registry ---- */
+  renderRegistry();
+}
+
+function renderRegistry(){
+  const statFilter = document.getElementById('filter-status').value;
+  const search = document.getElementById('filter-search').value.toLowerCase();
+
+  let list = getFilteredActions().filter(a=>{
+    if(statFilter && a.statut!==statFilter) return false;
+    if(registryEfficaciteFilter && a.efficacite!==registryEfficaciteFilter) return false;
+    if(registryTrainingFilter && !isTrainingAction(a)) return false;
+    if(search){
+      const hay = `${a.activite} ${a.action} ${a.responsable} ${a.nc} ${a.cause}`.toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+  list.sort((a,b)=>b.id-a.id);
+
+  document.getElementById('reg-count').textContent = `${list.length} action${list.length>1?'s':''}`;
+
+  const tbody = document.querySelector('#full-table tbody');
+  tbody.innerHTML = '';
+  list.forEach(a=>{
+    const isOverdue = a.statut!=='Clôturé' && a.dateEcheance && daysLate(a.dateEcheance)>0;
+    const tr = document.createElement('tr');
+    tr.dataset.id = a.id;
+    if(!isAdmin()) tr.classList.add('readonly-row');
+    tr.innerHTML = `
+      <td>#${a.id} ${isAdmin() ? '<span class="edit-hint">✎ éditer</span>' : ''}</td>
+      <td>${a.bu||'—'}</td>
+      <td>${a.activite||'—'}</td>
+      <td style="max-width:220px;">${a.action||'—'}</td>
+      <td>${a.responsable||'—'}</td>
+      <td>${fmtDate(a.dateEcheance)} ${isOverdue?'<span class="tag red" style="margin-left:4px;">retard</span>':''}</td>
+      <td>${statusPillHTML(a.statut)}</td>
+      <td>${a.efficacite||'—'}</td>
+      <td>${a.avancement||0}%</td>
+      <td class="row-actions">${isAdmin() ? `<button data-del="${a.id}">Suppr.</button>` : ''}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+/* ===================== FORM ===================== */
+const formFields = ['activite','type','source','nc','priorite','cause','action','resp','date-ouv','date-ech','statut','kpi','avancement','efficacite','comment'];
+
+function openForm(action){
+  editingId = action ? action.id : null;
+  document.getElementById('form-panel').classList.add('open');
+  const bu = action?.bu || '';
+  document.getElementById('f-bu').value = bu;
+  populateSelect('f-activite', ACTIVITES_BY_BU[bu] || []);
+  setSelectValue('f-activite','f-activite-autre', action?.activite||'');
+  document.getElementById('f-type').value = action?.type||'';
+  document.getElementById('f-source').value = action?.source||'';
+  document.getElementById('f-nc').value = action?.nc||'';
+  document.getElementById('f-priorite').value = action?.priorite||'Moyenne';
+  document.getElementById('f-cause').value = action?.cause||'';
+  document.getElementById('f-action').value = action?.action||'';
+  setSelectValue('f-resp','f-resp-autre', action?.responsable||'');
+  document.getElementById('f-date-ouv').value = action?.dateOuverture||todayStr();
+  document.getElementById('f-date-ech').value = action?.dateEcheance||'';
+  document.getElementById('f-statut').value = action?.statut||'En cours';
+  setSelectValue('f-kpi','f-kpi-autre', action?.kpi||'');
+  document.getElementById('f-kpi-depart').value = action?.kpiDepart ?? '';
+  document.getElementById('f-kpi-cible').value = action?.kpiCible ?? '';
+  document.getElementById('f-kpi-post').value = action?.kpiPostAction ?? '';
+  document.getElementById('f-avancement').value = action?.avancement ?? 0;
+  document.getElementById('f-efficacite').value = action?.efficacite||'';
+  document.getElementById('f-comment').value = action?.comment||'';
+  document.getElementById('form-panel').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function closeForm(){
+  editingId = null;
+  document.getElementById('form-panel').classList.remove('open');
+}
+
+document.getElementById('btn-new').addEventListener('click', ()=>openForm(null));
+document.getElementById('btn-cancel').addEventListener('click', closeForm);
+
+populateSelect('f-activite', []);
+populateSelect('f-resp', LISTS.responsable);
+populateSelect('f-kpi', LISTS.kpi);
+wireAutreToggle('f-activite','f-activite-autre');
+wireAutreToggle('f-resp','f-resp-autre');
+wireAutreToggle('f-kpi','f-kpi-autre');
+
+document.getElementById('f-bu').addEventListener('change', ()=>{
+  const bu = document.getElementById('f-bu').value;
+  populateSelect('f-activite', ACTIVITES_BY_BU[bu] || []);
+  document.getElementById('f-activite-autre').classList.remove('show');
+  document.getElementById('f-activite-autre').value = '';
+});
+
+document.getElementById('btn-save').addEventListener('click', async ()=>{
+  const bu = document.getElementById('f-bu').value;
+  const activite = getSelectValue('f-activite','f-activite-autre');
+  const action = document.getElementById('f-action').value.trim();
+  const dateEcheance = document.getElementById('f-date-ech').value;
+  if(!bu || !activite || !action || !dateEcheance){
+    flash('Champs requis manquants (*)');
+    return;
+  }
+  const payload = {
+    bu,
+    activite,
+    type: document.getElementById('f-type').value.trim(),
+    source: document.getElementById('f-source').value.trim(),
+    nc: document.getElementById('f-nc').value.trim(),
+    priorite: document.getElementById('f-priorite').value,
+    cause: document.getElementById('f-cause').value.trim(),
+    action,
+    responsable: getSelectValue('f-resp','f-resp-autre'),
+    dateOuverture: document.getElementById('f-date-ouv').value,
+    dateEcheance,
+    statut: document.getElementById('f-statut').value,
+    kpi: getSelectValue('f-kpi','f-kpi-autre'),
+    kpiDepart: document.getElementById('f-kpi-depart').value===''? null : Number(document.getElementById('f-kpi-depart').value),
+    kpiCible: document.getElementById('f-kpi-cible').value===''? null : Number(document.getElementById('f-kpi-cible').value),
+    kpiPostAction: document.getElementById('f-kpi-post').value===''? null : Number(document.getElementById('f-kpi-post').value),
+    avancement: Number(document.getElementById('f-avancement').value)||0,
+    efficacite: document.getElementById('f-efficacite').value,
+    comment: document.getElementById('f-comment').value.trim(),
+  };
+
+  if(editingId){
+    const idx = actions.findIndex(a=>a.id===editingId);
+    if(idx>-1) actions[idx] = {...actions[idx], ...payload};
+  } else {
+    const nextId = actions.length ? Math.max(...actions.map(a=>a.id))+1 : 1;
+    actions.push({id: nextId, ...payload});
+  }
+  await persist();
+  closeForm();
+  render();
+});
+
+document.querySelector('#full-table').addEventListener('click', async (e)=>{
+  if(!isAdmin()) return; // les délégations user n'ont ni édition ni suppression
+  const delId = e.target.getAttribute('data-del');
+  if(delId){
+    if(confirm('Supprimer cette action CAPA ?')){
+      actions = actions.filter(a=>a.id!==Number(delId));
+      await persist();
+      render();
+    }
+    return;
+  }
+  const tr = e.target.closest('tr[data-id]');
+  if(tr){
+    const a = actions.find(x=>x.id===Number(tr.dataset.id));
+    if(a) openForm(a);
+  }
+});
+
+document.querySelector('#overdue-table').addEventListener('click', (e)=>{
+  if(!isAdmin()) return;
+  const tr = e.target.closest('tr[data-id]');
+  if(tr){
+    const a = actions.find(x=>x.id===Number(tr.dataset.id));
+    if(a) openForm(a);
+  }
+});
+
+['filter-status','filter-search'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', renderRegistry);
+  document.getElementById(id).addEventListener('change', renderRegistry);
+});
+
+document.getElementById('filter-bu').addEventListener('change', ()=>{
+  document.getElementById('filter-activity').value = '';
+  render();
+});
+['filter-activity','filter-month','filter-week'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', render);
+});
+document.getElementById('btn-reset-period').addEventListener('click', ()=>{
+  document.getElementById('filter-bu').value = '';
+  document.getElementById('filter-activity').value = '';
+  document.getElementById('filter-month').value = '';
+  document.getElementById('filter-week').value = '';
+  render();
+});
+
+function scrollToRegistry(){
+  document.getElementById('section-registry').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function toggleEfficaciteFilter(value){
+  registryEfficaciteFilter = (registryEfficaciteFilter===value) ? null : value;
+  registryTrainingFilter = false;
+  render();
+  scrollToRegistry();
+}
+
+function toggleTrainingFilter(){
+  registryTrainingFilter = !registryTrainingFilter;
+  registryEfficaciteFilter = null;
+  render();
+  scrollToRegistry();
+}
+
+document.getElementById('kpi-eff-card').addEventListener('click', ()=>toggleEfficaciteFilter('Oui'));
+document.getElementById('kpi-ineff-card').addEventListener('click', ()=>toggleEfficaciteFilter('Non'));
+document.getElementById('kpi-training-card').addEventListener('click', toggleTrainingFilter);
+document.getElementById('eff-filter-chip').addEventListener('click', ()=>{
+  registryEfficaciteFilter = null;
+  registryTrainingFilter = false;
+  render();
+});
+
+/* Les données sont chargées après connexion (voir attemptLogin) */
+</script>
+</body>
+</html>
